@@ -2,12 +2,12 @@ import { Random } from './random'
 import { State } from './state'
 import { Stage, Background } from './stages'
 import { generatePalette } from './colors'
-import { ImageBuffer } from './imagebuffer'
+import { Layer } from './layer'
 
 export class Motif {
   static render(seed: string, canvas: HTMLCanvasElement) {
-    console.log("rendering motif")
     const random = new Random(seed)
+    const ctx = canvas.getContext("2d")
 
     const state: State = {
       baseSeed: seed,
@@ -15,22 +15,24 @@ export class Motif {
       height: canvas.height,
       width: canvas.width,
       palette: generatePalette(seed),
-      imageBuffer: new ImageBuffer(canvas)
     }
 
     const stagesToRun: Stage[] = [
-      new Background()
-      // stages.moon,
+      new Background(),
+      // new Moon()
       // stages.mountains,
       // stages.rocks,
       // stages.water
     ]
 
+    let layers: Layer[] = []
     for (const stage of stagesToRun) {
-      console.log(stage)
-      stage.run(state)
+      layers = layers.concat(stage.run(state))
     }
 
-    state.imageBuffer.paintCanvas()
+    for(const layer of layers) {
+      layer.paintCanvas(ctx)
+    }
+  
   }
 }

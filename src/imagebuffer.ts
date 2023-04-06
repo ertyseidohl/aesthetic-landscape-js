@@ -8,18 +8,14 @@ function assert(val: boolean, str: string) {
 
 export class ImageBuffer {
   // From http://jsfiddle.net/andrewjbaker/Fnx2w/
-  canvas: HTMLCanvasElement
-  ctx: CanvasRenderingContext2D
   imageData: ImageData
   buffer: ArrayBuffer
   imageDataView8: Uint8ClampedArray
   imageDataView32: Uint32Array
   isLittleEndian: boolean
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas
-    this.ctx = canvas.getContext('2d')
-    this.imageData = this.ctx.getImageData(0, 0, canvas.width, canvas.height)
+  constructor(width: number, height: number) {
+    this.imageData = new ImageData(width, height)
     this.buffer = new ArrayBuffer(this.imageData.data.length)
     this.imageDataView8 = new Uint8ClampedArray(this.buffer)
     this.imageDataView32 = new Uint32Array(this.buffer)
@@ -27,11 +23,11 @@ export class ImageBuffer {
   }
 
   get width(): number {
-    return this.canvas.width
+    return this.imageData.width
   }
 
   get height(): number {
-    return this.canvas.height
+    return this.imageData.height
   }
 
   testEndianness(): void {
@@ -54,7 +50,7 @@ export class ImageBuffer {
   }
 
   setPixel(x: number, y: number, color: Color): void {
-    this.imageDataView32[y * this.canvas.width + x] = this.toEndianI32(color)
+    this.imageDataView32[y * this.imageData.width + x] = this.toEndianI32(color)
   }
 
   setPixels(x: number, y: number, width: number, height: number, color: Color) {
@@ -62,27 +58,27 @@ export class ImageBuffer {
     assert(width > 0, "width > 0")
     assert(y >= 0, "y >= 0")
     assert(height > 0, "height > 0")
-    assert(x + width <= this.canvas.width, "x + width <= this.canvas.width")
-    assert(y + height <= this.canvas.height, "y + height <= this.canvas.height")
+    assert(x + width <= this.imageData.width, "x + width <= this.imageData.width")
+    assert(y + height <= this.imageData.height, "y + height <= this.imageData.height")
 
     const colorI32 = this.toEndianI32(color)
 
     for (let i = y; i < y + height; i++) {
       for(let j = x; j < x + width; j++) {
-        this.imageDataView32[i * this.canvas.width + j] = colorI32
+        this.imageDataView32[i * this.imageData.width + j] = colorI32
       }
     }
   }
 
   swap(x1: number, y1: number, x2: number, y2: number) {
-    [this.imageDataView32[y1 * this.canvas.width + x1],
-      this.imageDataView32[y2 * this.canvas.width + x2]] = [
-      this.imageDataView32[y2 * this.canvas.width + x2],
-      this.imageDataView32[y1 * this.canvas.width + x1]]
+    [this.imageDataView32[y1 * this.imageData.width + x1],
+      this.imageDataView32[y2 * this.imageData.width + x2]] = [
+      this.imageDataView32[y2 * this.imageData.width + x2],
+      this.imageDataView32[y1 * this.imageData.width + x1]]
   }
 
-  paintCanvas(): void {
+  paintCanvas(ctx: CanvasRenderingContext2D): void {
     this.imageData.data.set(this.imageDataView8)
-    this.ctx.putImageData(this.imageData, 0, 0)
+    ctx.putImageData(this.imageData, 0, 0)
   }
 }

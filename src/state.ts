@@ -1,5 +1,4 @@
 import { Palette } from './colors'
-import { ImageBuffer } from './imagebuffer'
 
 export interface State {
 	baseSeed: string
@@ -7,5 +6,4 @@ export interface State {
 	height: number
 	width: number
 	palette: Palette
-	imageBuffer: ImageBuffer
 }

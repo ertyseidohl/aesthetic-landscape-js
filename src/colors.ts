@@ -60,7 +60,6 @@ const choices = [
 export function generatePalette(baseSeed: string): Palette {
   const random: Random = new Random(baseSeed)
   const backgroundChoice = random.choice(choices) as Palette
-  console.log(backgroundChoice)
   const backgroundLerp: Lerp = new Lerp(backgroundChoice[0], backgroundChoice[2], 6)
   const foregroundBase = random.choice(choices) as Palette
 
