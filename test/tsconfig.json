@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "removeComments": true,
+    "module": "system",
+    "target": "es6",
+    "preserveConstEnums": true,
+    "outFile": "./dist/test.js",
+    "sourceMap": true,
+    "lib": ["ES6", "dom"]
+  },
+  "include": ["./tests.ts"],
+}

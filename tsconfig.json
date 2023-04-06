@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "removeComments": true,
+    "module": "system",
+    "target": "es6",
+    "preserveConstEnums": true,
+    "outFile": "./dist/script.js",
+    "sourceMap": true,
+    "lib": ["ES6", "dom"]
+  },
+  "include": ["./src/script.ts"],
+}
