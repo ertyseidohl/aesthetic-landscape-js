@@ -9,18 +9,17 @@ export class Background implements Stage {
   backgroundColors: Color[]
 
   run(state: State) {
-    console.log("running background")
-    // const random: Random = new Random(state.baseSeed)
+    const random: Random = new Random(state.baseSeed)
 
     this.backgroundColors = state.palette.slice(BG_DARKEST_INDEX, BG_LIGHTEST_INDEX + 1)
 
-    // this._fill_bands(state)
+    this._fill_bands(state)
 
     // Original code had "dither", "diag", and "none" but was hardcoded to "dither"
     // since that looked the best.
-    // this._dither(random, state)
+    this._dither(random, state)
 
-    // this._fill_stars(random, state)
+    this._fill_stars(random, state)
   } 
 
   _dither(random: Random, state: State): void {
@@ -38,7 +37,7 @@ export class Background implements Stage {
     for (const edge of bandEdges) {
       for (let x = 0; x < state.width; x++) {
         if (x % 2 == 0){
-          for (let yOffset = 0; yOffset < stampSize; yOffset += stampPattern[Math.floor(x / 2) % stampPattern.length]){
+          for (let yOffset = 0; yOffset < stampSize + stampPattern[Math.floor(x / 2) % stampPattern.length]; yOffset++){
             if (yOffset % 2 != 0) {
               state.imageBuffer.swap(x, edge + yOffset, x, edge - yOffset)
             }
@@ -49,7 +48,6 @@ export class Background implements Stage {
   }
 
   _fill_bands(state: State): void {
-    console.log("Fill bands")
     const bandHeight = Math.floor(state.horizon / this.backgroundColors.length)
     for (let i = 0; i < this.backgroundColors.length; i++) {
       state.imageBuffer.setPixels(0, i * bandHeight, state.imageBuffer.width, bandHeight, this.backgroundColors[i])
@@ -62,14 +60,15 @@ export class Background implements Stage {
     const smallStarCount = random.randint(10, 30)
     for (let i = 0; i < smallStarCount; i++) {
       const x = random.randint(0, state.imageBuffer.width)
-      const y = random.triangular(0, state.imageBuffer.height, 0)
+      const y = Math.floor(random.triangular(0, state.horizon, 0))
+      console.log("Star at " + x + "," + y)
       state.imageBuffer.setPixel(x, y, WHITE_RGB)
     }
     // Big Stars
     const largeStarCount = random.randint(5, 10)
     for (let i = 0; i < largeStarCount; i++) {
       const x = random.randint(0, state.imageBuffer.width)
-      const y = random.triangular(0, state.imageBuffer.height, 0)
+      const y = Math.floor(random.triangular(0, state.horizon, 0))
       state.imageBuffer.setPixel(x, y, WHITE_RGB)
       if (x - 1 >= 0) {
         state.imageBuffer.setPixel(x - 1, y, WHITE_RGB)

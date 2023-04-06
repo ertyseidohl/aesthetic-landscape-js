@@ -32,8 +32,8 @@ export class Random {
 
   xmur3(str: string): () => number {
     // From https://github.com/bryc/code/blob/master/jshash/PRNGs.md
-    let h: number // Not sure if this is supposed to be global.
-    for(let i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
+    let h = 1779033703 ^ str.length;
+    for(let i = 0; i < str.length; i++) {
       h = Math.imul(h ^ str.charCodeAt(i), 3432918353)
       h = h << 13 | h >>> 19
     }
@@ -61,7 +61,8 @@ export class Random {
       c = x ^ z ^ (x >>> 18 | y << 14) ^ (z >>> 5 | w << 27)
       d = y ^ w ^ (y >>> 18) ^ (w >>> 5)
 
-      return t >>> 0
+      // Original fn returns a 32 bit int, we want a float in [0, 1)
+      return (t >>> 0) / 0xffffffff
     }
   }
 }
