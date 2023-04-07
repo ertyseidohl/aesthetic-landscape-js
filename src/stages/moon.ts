@@ -1,26 +1,46 @@
 import { State } from '../state'
-import { WHITE, BG_DARKER } from '../colors'
+import { WHITE_INDEX, BG_DARKER_INDEX } from '../colors'
 import { Random } from '../random'
+import { Reflection } from '../reflection'
+import { Layer } from '../layer'
+import { Color } from '../color'
+import { Stage } from './stage'
 
-const COLOR_LIGHT = WHITE
-const COLOR_SHADOW = BG_DARKER
+const COLOR_LIGHT_INDEX = WHITE_INDEX
+const COLOR_DARK_INDEX = BG_DARKER_INDEX
 
-const SQUASH_AMOUNT = 2
+export class Moon implements Stage {
+  private colorLight: Color
+  private colorDark: Color
 
-export class Moon extends Stage {
   run (state: State) {
+    const layer = Layer.ofCanvas(state.width, state.height, Reflection.REFLECT_HORIZON)
+    const canvasContext = layer.canvas.getContext("2d")
     const random = new Random(state.baseSeed)
     const moonRadius = Math.floor(random.triangular(8, 32))
-    const moonX = Math.floor(random.triangular(0, width * 0.66))
-    const moonY = Math.floor(random.triangular(moonRadius, horizon / 2))
+    const moonX = Math.floor(random.triangular(0, state.width * 0.66))
+    const moonY = Math.floor(random.triangular(moonRadius, state.horizon / 2))
+    
+
+    this.colorLight = state.palette[COLOR_LIGHT_INDEX]
+    this.colorDark = state.palette[COLOR_DARK_INDEX]
+
+    this._drawNewMoon(canvasContext, moonX, moonY, moonRadius)
+
+    return [layer]
   }
 
-  _drawNewMoon(x, y, r, draw, seed_obj): void {
-    draw.ellipse(((x - r - SQUASH_AMOUNT, y - r), (x + r + SQUASH_AMOUNT, y + r)), COLOR_SHADOW)
+  _drawNewMoon(canvasContext: OffscreenCanvasRenderingContext2D, x: number, y: number, r: number): void {
+    canvasContext.fillStyle = this.colorDark.toString()
+    canvasContext.ellipse(x, y, r, r, 0, 0, 2 * Math.PI)
+    canvasContext.fill()
   }
 
 }
- /*
+/*
+
+ def newmoon:
+  draw.ellipse(((x - r - SQUASH_AMOUNT, y - r), (x + r + SQUASH_AMOUNT, y + r)), COLOR_SHADOW)
 
 
 def moon(layers, layer_factory, seed_obj):

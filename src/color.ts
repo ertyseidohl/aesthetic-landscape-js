@@ -8,4 +8,8 @@ export class Color {
   asUint8Array(): Uint8Array {
     return new Uint8Array([this.red, this.blue, this.green])
   }
+
+  toString(): string {
+    return `rgb(${this.red}, ${this.blue}, ${this.green})`
+  }
 }

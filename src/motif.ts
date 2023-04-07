@@ -31,8 +31,7 @@ export class Motif {
     }
 
     for(const layer of layers) {
-      layer.paintCanvas(ctx)
+      ctx.drawImage(layer.canvas, 0, 0)
     }
-  
   }
 }

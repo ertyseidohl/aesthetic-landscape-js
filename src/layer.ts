@@ -3,22 +3,35 @@ import { ImageBuffer } from './imagebuffer'
 
 export class Layer {
   private _reflection: Reflection
-  private _imageBuffer: ImageBuffer
+  private _canvas: OffscreenCanvas
 
-  constructor(width: number, height: number, reflection: Reflection) {
+  private constructor(width: number, height: number, reflection: Reflection, imageBuffer: ImageBuffer = null) {
     this._reflection = reflection
-    this._imageBuffer = new ImageBuffer(width, height)
+    if (imageBuffer !== null) {
+      this._canvas = new OffscreenCanvas(imageBuffer.width, imageBuffer.height)
+      imageBuffer.paintCanvas(this._canvas.getContext("2d"))
+    } else {
+      this._canvas = new OffscreenCanvas(width, height)
+    }
   }
 
-  public get reflection() {
+  static ofCanvas(width: number, height: number, reflection: Reflection): Layer {
+    return new Layer(width, height, reflection)
+  }
+
+  static ofImageBuffer(imageBuffer: ImageBuffer, reflection: Reflection): Layer {
+    return new Layer(imageBuffer.width, imageBuffer.height, reflection, imageBuffer)
+  }
+
+  get canvas(): OffscreenCanvas {
+    return this._canvas
+  }
+
+  get reflection() {
     return this._reflection
   }
 
-  public get imageBuffer() {
-    return this._imageBuffer
-  }
-
-  paintCanvas(ctx: CanvasRenderingContext2D) {
-    this.imageBuffer.paintCanvas(ctx)
+  getBitmap(): ImageBitmap {
+    return this._canvas.transferToImageBitmap()
   }
 }

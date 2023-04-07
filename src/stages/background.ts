@@ -5,6 +5,7 @@ import { Stage } from './stage'
 import { Random } from '../random'
 import { Layer } from '../layer'
 import { Reflection } from '../reflection'
+import { ImageBuffer } from '../imagebuffer'
 
 export class Background implements Stage {
 
@@ -13,22 +14,22 @@ export class Background implements Stage {
   run(state: State): Layer[] {
     const random: Random = new Random(state.baseSeed)
 
-    const layer = new Layer(state.width, state.height, Reflection.NONE)
+    const imageBuffer = new ImageBuffer(state.width, state.height)
 
     this.backgroundColors = state.palette.slice(BG_DARKEST_INDEX, BG_LIGHTEST_INDEX + 1)
 
-    this._fill_bands(layer, state)
+    this._fill_bands(imageBuffer, state)
 
     // Original code had "dither", "diag", and "none" but was hardcoded to "dither"
     // since that looked the best.
-    this._dither(random, layer, state)
+    this._dither(random, imageBuffer, state)
 
-    this._fill_stars(random, layer, state)
+    this._fill_stars(random, imageBuffer, state)
 
-    return [layer]
+    return [Layer.ofImageBuffer(imageBuffer, Reflection.NONE)]
   } 
 
-  _dither(random: Random, layer: Layer, state: State): void {
+  _dither(random: Random, imageBuffer: ImageBuffer, state: State): void {
     const stampSize = Math.floor((random.triangular(2, Math.floor(state.horizon / this.backgroundColors.length))))
 
     const bandEdges: number[] = []
@@ -45,7 +46,7 @@ export class Background implements Stage {
         if (x % 2 == 0){
           for (let yOffset = 0; yOffset < stampSize + stampPattern[Math.floor(x / 2) % stampPattern.length]; yOffset++){
             if (yOffset % 2 != 0) {
-              layer.imageBuffer.swap(x, edge + yOffset, x, edge - yOffset)
+              imageBuffer.swap(x, edge + yOffset, x, edge - yOffset)
             }
           }
         }
@@ -53,39 +54,39 @@ export class Background implements Stage {
     }
   }
 
-  _fill_bands(layer: Layer, state: State): void {
+  _fill_bands(imageBuffer: ImageBuffer, state: State): void {
     const bandHeight = Math.floor(state.horizon / this.backgroundColors.length)
     for (let i = 0; i < this.backgroundColors.length; i++) {
-      layer.imageBuffer.setPixels(0, i * bandHeight, layer.imageBuffer.width, bandHeight, this.backgroundColors[i])
+      imageBuffer.setPixels(0, i * bandHeight, imageBuffer.width, bandHeight, this.backgroundColors[i])
     }
   }
 
-  _fill_stars(random: Random, layer: Layer, state: State): void {
+  _fill_stars(random: Random, imageBuffer: ImageBuffer, state: State): void {
     // Some differences from the original code here.
     // Small Stars
     const smallStarCount = random.randint(10, 30)
     for (let i = 0; i < smallStarCount; i++) {
-      const x = random.randint(0, layer.imageBuffer.width)
+      const x = random.randint(0, imageBuffer.width)
       const y = Math.floor(random.triangular(0, state.horizon, 0))
-      layer.imageBuffer.setPixel(x, y, WHITE_RGB)
+      imageBuffer.setPixel(x, y, WHITE_RGB)
     }
     // Big Stars
     const largeStarCount = random.randint(5, 10)
     for (let i = 0; i < largeStarCount; i++) {
-      const x = random.randint(0, layer.imageBuffer.width)
+      const x = random.randint(0, imageBuffer.width)
       const y = Math.floor(random.triangular(0, state.horizon, 0))
-      layer.imageBuffer.setPixel(x, y, WHITE_RGB)
+      imageBuffer.setPixel(x, y, WHITE_RGB)
       if (x - 1 >= 0) {
-        layer.imageBuffer.setPixel(x - 1, y, WHITE_RGB)
+        imageBuffer.setPixel(x - 1, y, WHITE_RGB)
       }
-      if (x + 1 <= layer.imageBuffer.width) {
-        layer.imageBuffer.setPixel(x + 1, y, WHITE_RGB)
+      if (x + 1 <= imageBuffer.width) {
+        imageBuffer.setPixel(x + 1, y, WHITE_RGB)
       }
       if (y - 1 >= 0) {
-        layer.imageBuffer.setPixel(x, y - 1, WHITE_RGB)
+        imageBuffer.setPixel(x, y - 1, WHITE_RGB)
       }
       if (y + 1 < state.horizon) {
-        layer.imageBuffer.setPixel(x, y + 1, WHITE_RGB)
+        imageBuffer.setPixel(x, y + 1, WHITE_RGB)
       }
     }
   }
