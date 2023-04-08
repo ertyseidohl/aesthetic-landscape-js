@@ -70,6 +70,58 @@ export class ImageBuffer {
     }
   }
 
+  ellipse(x: number, y: number, radiusX: number, radiusY: number, startAngle: number, endAngle: number, color: Color) {
+    // Writing my own since the built-in implementation uses antialiasing.
+    // Ellipse point checking based on https://math.stackexchange.com/a/76463
+    // and https://stackoverflow.com/a/51896645/374601
+
+    assert(radiusX > 0, "radiusX > 0")
+    assert(radiusY > 0, "radiusY > 0")
+    assert(startAngle !== endAngle, "startAngle !== endAngle")
+
+    const insideAngle = (x: number, y: number, i: number, j: number) : boolean => {
+      // Ok I can't figure this out right now but for whatever reason, this algo considers
+      // the origin 0 deg to be on the left half (where 180 deg usually is). Just going to 
+      // flip over all of my coordinates and solve it later...
+      if (x == i && y == j) {
+        // Fill pixel at origin of arc
+        return true
+      }
+      
+      let angle = Math.atan2(y - j, x - i)
+      if (angle < 0) {
+        // Fix 180 deg discontinuity. From https://stackoverflow.com/a/1311124/374601
+        angle += Math.PI * 2
+      }
+      if (startAngle < endAngle) {
+        return startAngle <= angle && angle <= endAngle
+      } else {
+        if (angle >= startAngle) {
+          return true
+        }
+        if (angle <= endAngle) {
+          return true
+        }
+        return false
+      }
+    }
+
+    const rX2 = radiusX * radiusX
+    const rY2 = radiusY * radiusY
+
+    for (let j = y - radiusY; j < y + radiusY; j++) {
+      for (let i = x - radiusX; i < x + radiusX; i++) {
+        if ((Math.pow(i - x, 2) / rX2) + (Math.pow(j - y, 2) / rY2) < 1) {
+          if (insideAngle(x, y, i, j)) {
+            this.setPixel(i, j, color)
+          }
+        }
+      }
+    }
+
+
+  }
+
   swap(x1: number, y1: number, x2: number, y2: number) {
     [this.imageDataView32[y1 * this.imageData.width + x1],
       this.imageDataView32[y2 * this.imageData.width + x2]] = [
@@ -77,7 +129,7 @@ export class ImageBuffer {
       this.imageDataView32[y1 * this.imageData.width + x1]]
   }
 
-  paintCanvas(ctx: OffscreenCanvasRenderingContext2D): void {
+  paintCanvas(ctx: CanvasRenderingContext2D): void {
     this.imageData.data.set(this.imageDataView8)
     ctx.putImageData(this.imageData, 0, 0)
   }

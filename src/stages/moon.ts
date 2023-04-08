@@ -5,6 +5,7 @@ import { Reflection } from '../reflection'
 import { Layer } from '../layer'
 import { Color } from '../color'
 import { Stage } from './stage'
+import { ImageBuffer } from '../imagebuffer'
 
 const COLOR_LIGHT_INDEX = WHITE_INDEX
 const COLOR_DARK_INDEX = BG_DARKER_INDEX
@@ -17,8 +18,7 @@ export class Moon implements Stage {
   private random: Random
 
   run (state: State) {
-    const layer = Layer.ofCanvas(state.width, state.height, Reflection.REFLECT_HORIZON)
-    const canvasContext = layer.canvas.getContext("2d")
+    const layer = new Layer(state.width, state.height, Reflection.REFLECT_HORIZON)
     
     this.random = new Random(state.baseSeed)
 
@@ -39,78 +39,46 @@ export class Moon implements Stage {
       this.drawCrescentMoon.bind(this),
       this.drawGibbousMoon.bind(this),
       this.drawNewMoon.bind(this)
-    ])
+    ]) as (imageBuffer: ImageBuffer, x: number, y: number, r: number) =>  void
 
-    phase(canvasContext, moonX, moonY, moonRadius)
+    phase(layer.imageBuffer, moonX, moonY, moonRadius)
 
     return [layer]
   }
 
-  private drawNewMoon(canvasContext: OffscreenCanvasRenderingContext2D, x: number, y: number, r: number): void {
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorDark.toString()
-    canvasContext.ellipse(x, y, r + 2, r + 2, 0, 0, 2 * Math.PI)
-    canvasContext.fill()
-
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorDarker.toString()
-    canvasContext.ellipse(x, y, r, r, 0, 0, 2 * Math.PI)
-    canvasContext.fill()
+  private drawNewMoon(imageBuffer: ImageBuffer, x: number, y: number, r: number): void {
+    imageBuffer.ellipse(x, y, r + 2, r + 2, 0, 2 * Math.PI, this.colorDark)
+    imageBuffer.ellipse(x, y, r, r, 0, 2 * Math.PI, this.colorDarker)
   }
 
-  private drawCrescentMoon(canvasContext: OffscreenCanvasRenderingContext2D, x: number, y: number, r: number) {
-    const crescentWidth = this.random.triangular(5, r, 5)
-    // Original code did not have the rotation option
-    const rotation = -this.random.randint(0, 40)
-
-    canvasContext.translate(x, y)
-    canvasContext.rotate(rotation * Math.PI / 180)
+  private drawCrescentMoon(imageBuffer: ImageBuffer, x: number, y: number, r: number) {
+    const crescentWidth = Math.floor(this.random.triangular(5, r, 5))
 
     // Dark outline
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorDark.toString()
-    canvasContext.ellipse(0, 0, r + 2, r + 2, 0, 0, 2 * Math.PI)
-    canvasContext.fill()
+    imageBuffer.ellipse(x, y, r + 2, r + 2, 0, 2 * Math.PI, this.colorDark)
 
     // Light Crescent (circle)
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorLight.toString()
-    canvasContext.ellipse(0, 0, r, r, 0, 0.5 * Math.PI, 1.5 * Math.PI)
-    canvasContext.fill()
+    // Remember that angles are flipped 180 for WHATEVER reason
+    imageBuffer.ellipse(x, y, r, r, 1.5 * Math.PI, 0.5 * Math.PI, this.colorLight)
 
     // Dark Crescent Fill
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorDark.toString()
-    canvasContext.ellipse(1, 0, r - crescentWidth, r, 0, 0.5 * Math.PI, 1.5 * Math.PI)
-    canvasContext.fill()
-
-    canvasContext.resetTransform()
+    // Remember that angles are flipped 180 for WHATEVER reason
+    imageBuffer.ellipse(x + 1, y, r - crescentWidth, r, 1.5 * Math.PI, 0.5 * Math.PI, this.colorDark)
   }
 
-  drawGibbousMoon(canvasContext: OffscreenCanvasRenderingContext2D, x: number, y: number, r: number) {
-    const gibbousShift = this.random.randint(0, r / 2)
-
-    canvasContext.translate(x, y)
+  drawGibbousMoon(imageBuffer: ImageBuffer, x: number, y: number, r: number) {
+    const gibbousShift = Math.floor(this.random.randint(0, r / 2))
 
     // Dark outline
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorDark.toString()
-    canvasContext.ellipse(0, 0, r + 2, r + 2, 0, 0, 2 * Math.PI)
-    canvasContext.fill()
+    imageBuffer.ellipse(x, y, r + 2, r + 2, 0, 2 * Math.PI, this.colorDark)
 
     // Left half
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorLight.toString()
-    canvasContext.ellipse(0, 0, r, r, 0, 0.5 * Math.PI, 1.5 * Math.PI)
-    canvasContext.fill()
+    // Remember that angles are flipped 180 for WHATEVER reason
+    imageBuffer.ellipse(x, y, r, r, 0.5 * Math.PI, 1.5 * Math.PI, this.colorLight)
 
     // Right half
-    canvasContext.beginPath()
-    canvasContext.fillStyle = this.colorLight.toString()
-    canvasContext.ellipse(0, 0, r - gibbousShift, r, 0, 1.5 * Math.PI, 0.5 * Math.PI)
-    canvasContext.fill()    
-
-    canvasContext.resetTransform()
+    // Remember that angles are flipped 180 for WHATEVER reason
+    imageBuffer.ellipse(x, y, r - gibbousShift, r, 1.5 * Math.PI, 0.5 * Math.PI, this.colorLight)
   }
 
 }

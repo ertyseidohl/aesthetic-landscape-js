@@ -8,12 +8,14 @@ export class Motif {
   static render(seed: string, canvas: HTMLCanvasElement) {
     const random = new Random(seed)
     const ctx = canvas.getContext("2d")
+    canvas.style.imageRendering = "pixelated"
+    ctx.imageSmoothingEnabled= false
 
     const state: State = {
       baseSeed: seed,
-      horizon: Math.floor(random.triangular(canvas.height * 0.4, canvas.height * 0.8)),
-      height: canvas.height,
-      width: canvas.width,
+      horizon: Math.floor(random.triangular(canvas.height / 2 * 0.4, canvas.height / 2 * 0.8)),
+      height: canvas.height / 2,
+      width: canvas.width / 2,
       palette: generatePalette(seed),
     }
 
@@ -31,7 +33,7 @@ export class Motif {
     }
 
     for(const layer of layers) {
-      ctx.drawImage(layer.canvas, 0, 0)
+      layer.paint(ctx)
     }
   }
 }

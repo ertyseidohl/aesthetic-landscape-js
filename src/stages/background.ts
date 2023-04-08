@@ -14,19 +14,19 @@ export class Background implements Stage {
   run(state: State): Layer[] {
     const random: Random = new Random(state.baseSeed)
 
-    const imageBuffer = new ImageBuffer(state.width, state.height)
+    const layer = new Layer(state.width, state.height, Reflection.NONE)
 
     this.backgroundColors = state.palette.slice(BG_DARKEST_INDEX, BG_LIGHTEST_INDEX + 1)
 
-    this._fill_bands(imageBuffer, state)
+    this._fill_bands(layer.imageBuffer, state)
 
     // Original code had "dither", "diag", and "none" but was hardcoded to "dither"
     // since that looked the best.
-    this._dither(random, imageBuffer, state)
+    this._dither(random, layer.imageBuffer, state)
 
-    this._fill_stars(random, imageBuffer, state)
+    this._fill_stars(random, layer.imageBuffer, state)
 
-    return [Layer.ofImageBuffer(imageBuffer, Reflection.NONE)]
+    return [layer]
   } 
 
   _dither(random: Random, imageBuffer: ImageBuffer, state: State): void {
