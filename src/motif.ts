@@ -32,8 +32,11 @@ export class Motif {
       layers = layers.concat(stage.run(state))
     }
 
+    const bufferCanvas = new OffscreenCanvas(state.width, state.height)
+    const bufferContext = bufferCanvas.getContext("2d")
     for(const layer of layers) {
-      layer.paint(ctx)
+      bufferContext.putImageData(layer.getImageData(), 0, 0)
+      ctx.drawImage(bufferCanvas, 0, 0, state.width, state.height, 0, 0, canvas.width, canvas.height)
     }
   }
 }

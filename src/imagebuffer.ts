@@ -129,8 +129,8 @@ export class ImageBuffer {
       this.imageDataView32[y1 * this.imageData.width + x1]]
   }
 
-  paintCanvas(ctx: CanvasRenderingContext2D): void {
+  getImageData(): ImageData {
     this.imageData.data.set(this.imageDataView8)
-    ctx.putImageData(this.imageData, 0, 0)
+    return this.imageData
   }
 }

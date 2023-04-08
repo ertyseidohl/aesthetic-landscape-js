@@ -18,7 +18,7 @@ export class Layer {
     return this._imageBuffer
   }
 
-  public paint(ctx: CanvasRenderingContext2D) {
-    this._imageBuffer.paintCanvas(ctx)
+  public getImageData(): ImageData {
+    return this._imageBuffer.getImageData()
   }
 }
