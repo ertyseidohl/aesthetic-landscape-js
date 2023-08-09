@@ -1,6 +1,6 @@
 import { Random } from './random'
 import { State } from './state'
-import { Stage, Background, Moon } from './stages'
+import { Stage, Background, Moon, Water } from './stages'
 import { generatePalette } from './colors'
 import { Layer } from './layer'
 
@@ -17,24 +17,24 @@ export class Motif {
       height: canvas.height / 2,
       width: canvas.width / 2,
       palette: generatePalette(seed),
+      layers: []
     }
 
     const stagesToRun: Stage[] = [
       new Background(),
-      new Moon()
+      new Moon(),
       // stages.mountains,
       // stages.rocks,
-      // stages.water
+      new Water()
     ]
 
-    let layers: Layer[] = []
     for (const stage of stagesToRun) {
-      layers = layers.concat(stage.run(state))
+      state.layers = state.layers.concat(stage.run(state))
     }
 
     const bufferCanvas = new OffscreenCanvas(state.width, state.height)
     const bufferContext = bufferCanvas.getContext("2d")
-    for(const layer of layers) {
+    for(const layer of state.layers) {
       bufferContext.putImageData(layer.getImageData(), 0, 0)
       ctx.drawImage(bufferCanvas, 0, 0, state.width, state.height, 0, 0, canvas.width, canvas.height)
     }
