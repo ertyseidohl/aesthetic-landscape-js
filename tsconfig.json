@@ -7,7 +7,7 @@
     "preserveConstEnums": true,
     "outFile": "./dist/script.js",
     "sourceMap": true,
-    "lib": ["ES6", "dom"]
+    "lib": ["es2016", "dom"]
   },
   "include": ["./src/script.ts"],
 }
