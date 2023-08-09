@@ -32,7 +32,7 @@ export class Random {
 
   xmur3(str: string): () => number {
     // From https://github.com/bryc/code/blob/master/jshash/PRNGs.md
-    let h = 1779033703 ^ str.length;
+    let h = 1779033703 ^ str.length
     for(let i = 0; i < str.length; i++) {
       h = Math.imul(h ^ str.charCodeAt(i), 3432918353)
       h = h << 13 | h >>> 19
