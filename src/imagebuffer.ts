@@ -12,14 +12,12 @@ export class ImageBuffer {
   buffer: ArrayBuffer
   imageDataView8: Uint8ClampedArray
   imageDataView32: Uint32Array
-  isLittleEndian: boolean
 
   constructor(width: number, height: number) {
     this.imageData = new ImageData(width, height)
     this.buffer = new ArrayBuffer(this.imageData.data.length)
     this.imageDataView8 = new Uint8ClampedArray(this.buffer)
     this.imageDataView32 = new Uint32Array(this.buffer)
-    this.testEndianness()
   }
 
   get width(): number {
@@ -30,27 +28,12 @@ export class ImageBuffer {
     return this.imageData.height
   }
 
-  testEndianness(): void {
-    this.imageDataView32[1] = 0x0a0b0c0d
-    this.isLittleEndian = !(this.imageDataView8[4] === 0x0a && this.imageDataView8[7] === 0x0d)
-  }
-
-  toEndianI32(color: Color) {
-    if (this.isLittleEndian) {
-      return (255   << 24) |    // alpha
-        (color.blue << 16) |    // blue
-        (color.green <<  8) |    // green
-        color.red            // red
-    } else {
-      return (color.red << 24) |    // red
-        (color.green << 16) |    // green
-        (color.blue <<  8) |    // blue
-        255              // alpha
-    }
+  getPixel(x: number, y:number): number {
+    return this.imageDataView32[y * this.imageData.width + x]
   }
 
   setPixel(x: number, y: number, color: Color): void {
-    this.imageDataView32[y * this.imageData.width + x] = this.toEndianI32(color)
+    this.imageDataView32[y * this.imageData.width + x] = color.asNumber()
   }
 
   setPixels(x: number, y: number, width: number, height: number, color: Color) {
@@ -61,7 +44,7 @@ export class ImageBuffer {
     assert(x + width <= this.imageData.width, "x + width <= this.imageData.width")
     assert(y + height <= this.imageData.height, "y + height <= this.imageData.height")
 
-    const colorI32 = this.toEndianI32(color)
+    const colorI32 = color.asNumber()
 
     for (let i = y; i < y + height; i++) {
       for(let j = x; j < x + width; j++) {

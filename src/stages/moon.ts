@@ -6,6 +6,7 @@ import { Layer } from '../layer'
 import { Color } from '../color'
 import { Stage } from './stage'
 import { ImageBuffer } from '../imagebuffer'
+import { LayerType } from '../layertype'
 
 const COLOR_LIGHT_INDEX = WHITE_INDEX
 const COLOR_DARK_INDEX = BG_DARKER_INDEX
@@ -18,7 +19,7 @@ export class Moon implements Stage {
   private random: Random
 
   run (state: State) {
-    const layer = new Layer(state.width, state.height, Reflection.REFLECT_HORIZON)
+    const layer = new Layer(state.width, state.height, Reflection.REFLECT_HORIZON, LayerType.MOON)
     
     this.random = new Random(state.baseSeed)
 

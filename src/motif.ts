@@ -25,7 +25,7 @@ export class Motif {
       new Moon(),
       // stages.mountains,
       // stages.rocks,
-      new Water()
+      // new Water()
     ]
 
     for (const stage of stagesToRun) {

@@ -6,6 +6,7 @@ import { Random } from '../random'
 import { Layer } from '../layer'
 import { Reflection } from '../reflection'
 import { ImageBuffer } from '../imagebuffer'
+import { LayerType } from '../layertype'
 
 export class Background implements Stage {
 
@@ -14,7 +15,7 @@ export class Background implements Stage {
   run(state: State): Layer[] {
     const random: Random = new Random(state.baseSeed)
 
-    const layer = new Layer(state.width, state.height, Reflection.NONE)
+    const layer = new Layer(state.width, state.height, Reflection.NONE, LayerType.BACKGROUND)
 
     this.backgroundColors = state.palette.slice(BG_DARKEST_INDEX, BG_LIGHTEST_INDEX + 1)
 
