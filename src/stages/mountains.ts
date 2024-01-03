@@ -44,7 +44,7 @@ export class Mountains implements Stage {
         }
         peakList.sort((a, b) => a.x - b.x) 
 
-        peakList.map((peak) => new Mountain(state, peak,color)).forEach(m => m.draw(layer, state))
+        peakList.map((peak) => new Mountain(state, peak,color)).forEach(m => m.draw(layer))
 
     }
 }
@@ -115,10 +115,18 @@ class Mountain {
         return [slopeIndex, slopeStability]
     }
 
-    public draw(layer: Layer, state: State) {
-        for (let point of this.outline) {
-            for(let y = point.y; y < state.horizon; y++) {
-                layer.imageBuffer.setPixel(point.x, y, this.color)
+    public draw(layer: Layer) {
+        for (let i = 0; i < this.outline.length - 1; i++) {
+            let currPoint = this.outline[i]
+            let nextPoint = this.outline[i+1]
+            let xDiff = nextPoint.x - currPoint.x
+            for (let xRun = 0; xRun < xDiff; xRun++) {
+                let x = currPoint.x + xRun
+                // Attempt to lerp between each outline point. May not be correct.
+                let topY = Math.floor(currPoint.y + ((nextPoint.y - currPoint.y) / xDiff))
+                for (let y = topY; y < this.horizon; y++) {
+                    layer.imageBuffer.setPixel(x, y, this.color)
+                }
             }
         }
     }
