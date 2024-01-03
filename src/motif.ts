@@ -1,6 +1,6 @@
 import { Random } from './random'
 import { State } from './state'
-import { Stage, Background, Moon, Water } from './stages'
+import { Stage, Background, Moon, Water, Mountains } from './stages'
 import { generatePalette } from './colors'
 import { Layer } from './layer'
 
@@ -23,6 +23,7 @@ export class Motif {
     const stagesToRun: Stage[] = [
       new Background(),
       new Moon(),
+      new Mountains(),
       // stages.mountains,
       // stages.rocks,
       new Water()

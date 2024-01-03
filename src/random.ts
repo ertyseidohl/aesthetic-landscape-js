@@ -7,7 +7,7 @@ export class Random {
     this.random = this.xorshift128plus_32b(seedFunc(), seedFunc(), seedFunc(), seedFunc())
   }
 
-  choice(arr: unknown[]) {
+  choice<T>(arr: T[]): T {
     const index: number = Math.floor(this.random() * arr.length)
     return arr[index]
   }

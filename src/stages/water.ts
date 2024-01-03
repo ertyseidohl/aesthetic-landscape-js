@@ -43,7 +43,7 @@ class Reflector {
   private castRay(x: number, reflPoint: number) {
     let y = reflPoint
     while (y < this.height) {
-      if (this.origLayer.imageBuffer.getPixel(x, y) == TRANSPARENT_RGB.asNumber()) {
+      if (this.origLayer.imageBuffer.getPixel(x, y) == 0) {
         y = this.castWater(x, y)
       } else {
         y = this.castLand(x, y)
@@ -52,7 +52,7 @@ class Reflector {
   }
 
   private castLand(x: number, y: number): number {
-    while (y < this.height && this.origLayer.imageBuffer.getPixel(x, y) != TRANSPARENT_RGB.asNumber()) {
+    while (y < this.height && this.origLayer.imageBuffer.getPixel(x, y) != 0) {
       y ++
     }
     return y
@@ -60,9 +60,9 @@ class Reflector {
 
   private castWater(x: number, reflPoint: number): number {
     let y = reflPoint;
-    while(y < this.height && this.origLayer.imageBuffer.getPixel(x, y) == TRANSPARENT_RGB.asNumber()) { 
+    while(y < this.height && this.origLayer.imageBuffer.getPixel(x, y) == 0) { 
       const reflY = reflPoint + (reflPoint - y) - 1 // what?
-      if (this.origLayer.imageBuffer.getPixel(x, reflY) == TRANSPARENT_RGB.asNumber()) {
+      if (this.origLayer.imageBuffer.getPixel(x, reflY) == 0) {
         // we have hit water again
         return y + 1
       }
