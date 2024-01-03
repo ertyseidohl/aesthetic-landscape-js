@@ -4,10 +4,11 @@ import { Layer } from '../layer'
 import { Color } from '../color'
 import { ImageBuffer } from '../imagebuffer'
 import { BitMask } from '../bitmask'
-import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, TRANSPARENT_RGB, BG_DARKER_INDEX, TRANSPARENT_INDEX } from '../colors'
+import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, TRANSPARENT_RGB, BG_DARKER_INDEX, TRANSPARENT_INDEX, WHITE_RGB } from '../colors'
 import { Reflection } from '../reflection'
 import { LayerType } from '../layertype'
 import { Moon } from './moon'
+import { Random } from '../random'
 
 class Reflector {
   constructor(private height: number, private width: number, private horizon: number,
@@ -103,14 +104,37 @@ export class Water implements Stage {
 
     layers.push(fillWaterLayer)
 
-    state.layers.filter(l => l.layerType == LayerType.MOON).forEach(moonLayer => {
-      const reflLayer = new Layer(state.width, state.height, Reflection.IS_REFLECTION, LayerType.REFLECTION, []);
-      const reflector = new Reflector(state.width, state.height, state.horizon, moonLayer, reflLayer, mask, moonReflColor, waterColor)
-      reflector.reflectHorizon()
-      layers.push(reflector.layer)
-    })
+    for (let layerType of [LayerType.MOON, LayerType.MOUNTAIN, LayerType.ROCKS]) {
+      state.layers.filter(l => l.layerType == layerType).forEach(moonLayer => {
+        const reflLayer = new Layer(state.width, state.height, Reflection.IS_REFLECTION, LayerType.REFLECTION, [])
+        const reflector = new Reflector(state.width, state.height, state.horizon, moonLayer, reflLayer, mask, moonReflColor, waterColor)
+        reflector.reflectHorizon()
+        layers.push(reflector.layer)
+      })
+    }
+
+    layers.push(this.generateWaterLights(state, mask))
 
     return layers
+  }
+
+  private generateWaterLights(state: State, mask: BitMask): Layer {
+    const waterLightsLayer = new Layer(state.width, state.height, Reflection.IS_REFLECTION, LayerType.REFLECTION, [])
+    const random: Random = new Random(state.baseSeed)
+
+    for (let y = state.horizon; y < state.height; y ++) {
+      if (random.random() < 0.1) {
+        const end = random.randint(state.width * 2/3, state.width);
+        for (let x = random.randint(0, state.width / 3); x < end; x ++) {
+          if (!mask.isMasked(x, y) && random.random() < 0.8) {
+            waterLightsLayer.imageBuffer.setPixel(x, y, WHITE_RGB)
+          }
+        }
+        y += 2 // Prevent bunching
+      }
+    }
+
+    return waterLightsLayer
   }
 
   private static addMask = (bitField: BitMask, currentImageBuffer: ImageBuffer): BitMask => {
