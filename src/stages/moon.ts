@@ -19,7 +19,8 @@ export class Moon implements Stage {
   private random: Random
 
   run (state: State) {
-    const layer = new Layer(state.width, state.height, Reflection.REFLECT_HORIZON, LayerType.MOON)
+    const unlitColors = [state.palette[COLOR_DARK_INDEX], state.palette[COLOR_DARKER_INDEX]]
+    const layer = new Layer(state.width, state.height, Reflection.REFLECT_HORIZON, LayerType.MOON, unlitColors)
     
     this.random = new Random(state.baseSeed)
 
@@ -81,5 +82,4 @@ export class Moon implements Stage {
     // Remember that angles are flipped 180 for WHATEVER reason
     imageBuffer.ellipse(x, y, r - gibbousShift, r, 1.5 * Math.PI, 0.5 * Math.PI, this.colorLight)
   }
-
 }

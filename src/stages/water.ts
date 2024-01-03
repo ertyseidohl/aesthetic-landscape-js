@@ -4,9 +4,10 @@ import { Layer } from '../layer'
 import { Color } from '../color'
 import { ImageBuffer } from '../imagebuffer'
 import { BitMask } from '../bitmask'
-import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, TRANSPARENT_RGB, BG_DARKER_INDEX } from '../colors'
+import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, TRANSPARENT_RGB, BG_DARKER_INDEX, TRANSPARENT_INDEX } from '../colors'
 import { Reflection } from '../reflection'
 import { LayerType } from '../layertype'
+import { Moon } from './moon'
 
 class Reflector {
   constructor(private height: number, private width: number, private horizon: number,
@@ -23,19 +24,18 @@ class Reflector {
     return this.reflLayer;
   }
 
-  public reflectHorizon(excludeColorNumbers: number[] = []) {
-    excludeColorNumbers.push(TRANSPARENT_RGB.asNumber())
-    for (let yOffset = 0; yOffset < this.height - this.horizon + 1; yOffset ++) {
-      if (yOffset % 2 == 0) {
+  public reflectHorizon() {
+    const excludeColorNumbers = this.origLayer.unlitColors.map(c => c.asNumber())
+    excludeColorNumbers.push(0) // Don't reflect where there isn't anything to reflect
+    for (let yOffset = 0; yOffset < Math.min(this.horizon, this.height - this.horizon); yOffset += 2) {
         const origY: number = this.horizon - yOffset
-        const y: number = this.horizon + yOffset - 1
+        const y: number = this.horizon + yOffset
         for (let x = 0; x < this.width; x++) {
           const origPixel: number = this.origLayer.imageBuffer.getPixel(x, origY)
-          if (this.mask.get(x, y) && !excludeColorNumbers.includes(origPixel)) {
+          if (!this.mask.isMasked(x, y) && !excludeColorNumbers.includes(origPixel)) {
             this.reflLayer.imageBuffer.setPixel(x, y, this.color)
           }
         }
-      }
     }
   }
 
@@ -65,7 +65,7 @@ class Reflector {
         // we have hit water again
         return y + 1
       }
-      if (this.mask.get(x, y)) {
+      if (this.mask.isMasked(x, y)) {
         if (y % 2 == 0) {
           this.reflLayer.imageBuffer.setPixel(x, y, this.color)
         } else {
@@ -84,6 +84,7 @@ export class Water implements Stage {
     const waterColor = state.palette[BG_LIGHT_INDEX]
     const waterReflColor = state.palette[BG_LIGHTER_INDEX]
     const moonReflColor = state.palette[WHITE_INDEX]
+    const transparentColor = state.palette[TRANSPARENT_INDEX]
 
     const layers: Layer[] = []
 
@@ -91,10 +92,10 @@ export class Water implements Stage {
     const mask: BitMask = this.getWaterMask(state.layers, state.width, state.height)
 
     // Fill water layer with water color
-    const fillWaterLayer: Layer = new Layer(state.width, state.height, Reflection.NONE, LayerType.WATER)
+    const fillWaterLayer: Layer = new Layer(state.width, state.height, Reflection.NONE, LayerType.WATER, [])
     for (let y = 0; y < state.height; y++) {
       for (let x = 0; x < state.width; x++) {
-        if (mask.get(x, y) == true) {
+        if (!mask.isMasked(x, y)) {
           fillWaterLayer.imageBuffer.setPixel(x, y, waterColor)
         }
       }
@@ -103,20 +104,20 @@ export class Water implements Stage {
     layers.push(fillWaterLayer)
 
     state.layers.filter(l => l.layerType == LayerType.MOON).forEach(moonLayer => {
-      const reflLayer = new Layer(state.width, state.height, Reflection.IS_REFLECTION, LayerType.REFLECTION);
+      const reflLayer = new Layer(state.width, state.height, Reflection.IS_REFLECTION, LayerType.REFLECTION, []);
       const reflector = new Reflector(state.width, state.height, state.horizon, moonLayer, reflLayer, mask, moonReflColor, waterColor)
-      reflector.reflectHorizon([state.palette[BG_DARKER_INDEX].asNumber()])
+      reflector.reflectHorizon()
       layers.push(reflector.layer)
     })
 
     return layers
   }
 
-  private static addMask = (bitField: BitMask, currentLayer: ImageBuffer): BitMask => {
-    for (let y = 0; y < currentLayer.height; y++) {
-      for (let x = 0; x < currentLayer.width; x++) {
-        if (currentLayer.getPixel(x, y) != TRANSPARENT_RGB.asNumber()) {
-          bitField.set(x, y, true)
+  private static addMask = (bitField: BitMask, currentImageBuffer: ImageBuffer): BitMask => {
+    for (let y = 0; y < currentImageBuffer.height; y++) {
+      for (let x = 0; x < currentImageBuffer.width; x++) {
+        if (currentImageBuffer.getPixel(x, y) != 0) {
+          bitField.mask(x, y)
         }
       }
     }
@@ -127,6 +128,6 @@ export class Water implements Stage {
     return layers.filter(
       (l: Layer) => [Reflection.REFLECT_BASE, Reflection.REFLECT_HORIZON, Reflection.MASK].includes(l.reflection))
       .map((l: Layer) => l.imageBuffer)
-      .reduce(Water.addMask, new BitMask(width, height, true))
+      .reduce(Water.addMask, new BitMask(width, height))
   }
 }
