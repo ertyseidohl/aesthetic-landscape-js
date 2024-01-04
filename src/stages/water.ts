@@ -4,14 +4,14 @@ import { Layer } from '../layer'
 import { Color } from '../color'
 import { ImageBuffer } from '../imagebuffer'
 import { BitMask } from '../bitmask'
-import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, TRANSPARENT_RGB, BG_DARKER_INDEX, TRANSPARENT_INDEX, WHITE_RGB } from '../colors'
+import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, WHITE_RGB } from '../colors'
 import { Reflection } from '../reflection'
 import { LayerType } from '../layertype'
 import { Moon } from './moon'
 import { Random } from '../random'
 
 class Reflector {
-  constructor(private height: number, private width: number, private horizon: number,
+  constructor(private width: number, private height: number, private horizon: number,
     private origLayer: Layer, private reflLayer: Layer, private mask: BitMask,
     private color: Color, private waterColor: Color) {}
 
@@ -44,21 +44,14 @@ class Reflector {
     let y = reflPoint
     while (y < this.height) {
       if (this.origLayer.imageBuffer.getPixel(x, y) == 0) {
-        y = this.castWater(x, y)
+        y = this.castDrawWater(x, y)
       } else {
-        y = this.castLand(x, y)
+        y ++
       }
     }
   }
 
-  private castLand(x: number, y: number): number {
-    while (y < this.height && this.origLayer.imageBuffer.getPixel(x, y) != 0) {
-      y ++
-    }
-    return y
-  }
-
-  private castWater(x: number, reflPoint: number): number {
+  private castDrawWater(x: number, reflPoint: number): number {
     let y = reflPoint;
     while(y < this.height && this.origLayer.imageBuffer.getPixel(x, y) == 0) { 
       const reflY = reflPoint + (reflPoint - y) - 1 // what?
@@ -66,7 +59,7 @@ class Reflector {
         // we have hit water again
         return y + 1
       }
-      if (this.mask.isMasked(x, y)) {
+      if (!this.mask.isMasked(x, y)) {
         if (y % 2 == 0) {
           this.reflLayer.imageBuffer.setPixel(x, y, this.color)
         } else {
@@ -85,7 +78,6 @@ export class Water implements Stage {
     const waterColor = state.palette[BG_LIGHT_INDEX]
     const waterReflColor = state.palette[BG_LIGHTER_INDEX]
     const moonReflColor = state.palette[WHITE_INDEX]
-    const transparentColor = state.palette[TRANSPARENT_INDEX]
 
     const layers: Layer[] = []
 
@@ -104,16 +96,27 @@ export class Water implements Stage {
 
     layers.push(fillWaterLayer)
 
+    // Specifically go in z-order
     for (let layerType of [LayerType.MOON, LayerType.MOUNTAIN, LayerType.ROCKS]) {
-      state.layers.filter(l => l.layerType == layerType).forEach(moonLayer => {
+      const reflColor = layerType == LayerType.MOON ? moonReflColor : waterReflColor
+      state.layers.filter(layer => layer.layerType == layerType).forEach(layer => {
         const reflLayer = new Layer(state.width, state.height, Reflection.IS_REFLECTION, LayerType.REFLECTION, [])
-        const reflector = new Reflector(state.width, state.height, state.horizon, moonLayer, reflLayer, mask, moonReflColor, waterColor)
-        reflector.reflectHorizon()
+        const reflector = new Reflector(state.width, state.height, state.horizon, layer, reflLayer, mask, reflColor, waterColor)
+        switch (layer.reflection) {
+          case Reflection.REFLECT_HORIZON:
+            reflector.reflectHorizon()
+            break
+          case Reflection.REFLECT_BASE:
+            reflector.reflectBase()
+            break
+          default:
+            console.log("Unknown reflection type")
+        }
         layers.push(reflector.layer)
       })
     }
 
-    layers.push(this.generateWaterLights(state, mask))
+    // layers.push(this.generateWaterLights(state, mask))
 
     return layers
   }

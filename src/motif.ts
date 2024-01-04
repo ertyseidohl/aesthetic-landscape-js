@@ -24,7 +24,6 @@ export class Motif {
       new Background(),
       new Moon(),
       new Mountains(),
-      // stages.mountains,
       // stages.rocks,
       new Water()
     ]
