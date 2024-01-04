@@ -1,6 +1,6 @@
 import { Random } from './random'
 import { State } from './state'
-import { Stage, Background, Moon, Water, Mountains } from './stages'
+import { Stage, Background, Moon, Water, Mountains, Rocks } from './stages'
 import { generatePalette } from './colors'
 import { Layer } from './layer'
 
@@ -24,7 +24,7 @@ export class Motif {
       new Background(),
       new Moon(),
       new Mountains(),
-      // stages.rocks,
+      new Rocks(),
       new Water()
     ]
 

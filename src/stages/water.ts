@@ -4,11 +4,13 @@ import { Layer } from '../layer'
 import { Color } from '../color'
 import { ImageBuffer } from '../imagebuffer'
 import { BitMask } from '../bitmask'
-import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, WHITE_INDEX, WHITE_RGB } from '../colors'
+import { BG_LIGHT_INDEX, BG_LIGHTER_INDEX, TRANSPARENT_RGB, WHITE_INDEX, WHITE_RGB } from '../colors'
 import { Reflection } from '../reflection'
 import { LayerType } from '../layertype'
 import { Moon } from './moon'
 import { Random } from '../random'
+
+const DEBUG_DRAW_WATER_MASK = false
 
 class Reflector {
   constructor(private width: number, private height: number, private horizon: number,
@@ -53,7 +55,7 @@ class Reflector {
 
   private castDrawWater(x: number, reflPoint: number): number {
     let y = reflPoint;
-    while(y < this.height && this.origLayer.imageBuffer.getPixel(x, y) == 0) { 
+    while(y < this.height && this.origLayer.imageBuffer.getPixel(x, y) == 0) {
       const reflY = reflPoint + (reflPoint - y) - 1 // what?
       if (this.origLayer.imageBuffer.getPixel(x, reflY) == 0) {
         // we have hit water again
@@ -70,7 +72,6 @@ class Reflector {
     }
     return y
   }
-  
 }
 
 export class Water implements Stage {
@@ -116,7 +117,19 @@ export class Water implements Stage {
       })
     }
 
-    // layers.push(this.generateWaterLights(state, mask))
+    layers.push(this.generateWaterLights(state, mask))
+
+    if (DEBUG_DRAW_WATER_MASK) {
+      const debugDrawWaterMaskLayer: Layer = new Layer(state.width, state.height, Reflection.NONE, LayerType.WATER, [])
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
+          if (mask.isMasked(x, y)) {
+            debugDrawWaterMaskLayer.imageBuffer.setPixel(x, y, TRANSPARENT_RGB)
+          }
+        }
+      }
+      layers.push(debugDrawWaterMaskLayer)
+    }
 
     return layers
   }
@@ -149,7 +162,7 @@ export class Water implements Stage {
       }
     }
     return bitField
-  } 
+  }
 
   private getWaterMask(layers: Layer[], width: number, height: number): BitMask {
     return layers.filter(
