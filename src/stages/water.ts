@@ -15,7 +15,7 @@ const DEBUG_DRAW_WATER_MASK = false
 class Reflector {
   constructor(private width: number, private height: number, private horizon: number,
     private origLayer: Layer, private reflLayer: Layer, private mask: BitMask,
-    private color: Color, private waterColor: Color) {}
+    private color: Color, private waterColor: Color) { }
 
   public reflectBase(): void {
     for (let x = 0; x < this.width; x ++) {

@@ -6,6 +6,7 @@ import { Layer } from './layer'
 
 export class Motif {
   static render(seed: string, canvas: HTMLCanvasElement) {
+    console.log(`Seed: ${seed}`)
     const random = new Random(seed)
     const ctx = canvas.getContext("2d")
     canvas.style.imageRendering = "pixelated"
@@ -13,9 +14,9 @@ export class Motif {
 
     const state: State = {
       baseSeed: seed,
-      horizon: Math.floor(random.triangular(canvas.height / 2 * 0.4, canvas.height / 2 * 0.8)),
-      height: canvas.height / 2,
-      width: canvas.width / 2,
+      horizon: Math.floor(random.triangular(canvas.height / 4 * 0.4, canvas.height / 4 * 0.8)),
+      height: canvas.height / 4,
+      width: canvas.width / 4,
       palette: generatePalette(seed),
       layers: []
     }
